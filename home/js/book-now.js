@@ -1,146 +1,114 @@
-const { createApp, ref, reactive } = Vue;
+// Initialize Supabase
+const supabaseUrl = "https://umfamnhqjopxxtovmwsd.supabase.co";
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVtZmFtbmhxam9weHh0b3Ztd3NkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA4NTAwNTEsImV4cCI6MjA1NjQyNjA1MX0.YgT0GToWew6lP_noejWbe0FPxmVmHcc9DztbEzmInOs"; // Replace with your actual anon key
+const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-createApp({
-    setup() {        
-        const firstName = ref("");
-        const lastName = ref("");
-        const contactNumber = ref("");
-        const email = ref("");
-        const shoeBrandModel = ref("");
-        const serviceType = ref("");
-        const serviceName = ref("");
-        const numItems = ref(1);
-        const totalPayment = ref("₱0");
-        const paymentMethod = ref("");
-        const deliveryType = ref("");
-        const address = reactive({
-            street: "",
-            city: "",
-            postalCode: ""
-        });
-        const message = ref("");
-        const agreeToTerms = ref(false);
-        const showConfirmation = ref(false); 
-        
-        const serviceOptions = ref([]);
-        
-        const goBack = () => {
-            if (window.history.length > 1) {
-                window.history.back(); 
-            } else {
-                window.location.href = "index.html";  
-            }
-        };
-        
-        function updateServiceNames() {
-            if (serviceType.value === "Cleaning") {
-                serviceOptions.value = ["Deep Clean", "Sole Unyellowing"];
-            } else if (serviceType.value === "Restoration") {
-                serviceOptions.value = [
-                    "Full Repaint",
-                    "Full Outsole Reglue",
-                    "Full Midsole Reglue",
-                    "Sole Replacement",
-                    "Sole Stitch",
-                    "Partial Repaint",
-                    "Partial Reglue"
-                ];
-            } else {
-                serviceOptions.value = [];
-            }
-        }
+// Get form elements
+const bookingForm = document.getElementById("bookingForm");
+const serviceTypeSelect = document.getElementById("serviceType");
+const serviceNameSelect = document.getElementById("serviceName");
+const numItemsInput = document.getElementById("numItems");
+const totalPaymentInput = document.getElementById("totalPayment");
+const deliveryTypeSelect = document.getElementById("deliveryType");
+const addressFields = document.getElementById("deliveryAddress");
 
-        function calculateTotal() {
-            let prices = {
-                Cleaning: {
-                    "Deep Clean": 350,
-                    "Sole Unyellowing": 750                    
-                },
-                Restoration: {
-                    "Full Repaint": 1200,
-                    "Full Outsole Reglue": 1200,
-                    "Full Midsole Reglue": 1500,
-                    "Sole Replacement": 3500,
-                    "Sole Stitch": 300,
-                    "Partial Repaint": 300,
-                    "Partial Reglue": 400                    
-                }                
-            };
-            
-            if (serviceType.value && serviceName.value && prices[serviceType.value] && prices[serviceType.value][serviceName.value]) {
-                totalPayment.value = `₱${prices[serviceType.value][serviceName.value] * numItems.value}`;
-            }            
-        }
-        
-        function submitForm() {
-            showConfirmation.value = true;
-        }
-
-        function confirmBooking() {
-            document.querySelector('.modal h3').textContent = "Booking Confirmed!";
-            document.querySelector('.modal p').innerHTML = "<p class='confirmation-message'>Your booking has been confirmed successfully!</p>"; // Added class here
-            document.querySelector('.modal-buttons').innerHTML = '<button class="close-modal-button">Close</button>';
-
-            document.querySelector('.close-modal-button').addEventListener('click', () => {
-                closeModal();
-            });
-
-            showConfirmation.value = true;
-        }
-        
-        
-        function closeModal() {
-            resetForm();
-            showConfirmation.value = false;
-            window.location.href = "index.html";
-        }
-
-        function resetForm() {
-            firstName.value = "";
-            lastName.value = "";
-            contactNumber.value = "";
-            email.value = "";
-            shoeBrandModel.value = "";
-            serviceType.value = "";
-            serviceName.value = "";
-            numItems.value = 1;
-            totalPayment.value = "₱0";
-            paymentMethod.value = "";
-            deliveryType.value = "";
-            address.street = "";
-            address.city = "";
-            address.postalCode = "";
-            message.value = "";
-            agreeToTerms.value = false;
-            serviceOptions.value = [];
-        }
-
-        
-
-        return {
-            firstName,
-            lastName,
-            contactNumber,
-            email,
-            shoeBrandModel,
-            serviceType,
-            serviceName,
-            numItems,
-            totalPayment,
-            paymentMethod,
-            deliveryType,
-            address,
-            message,
-            agreeToTerms,
-            serviceOptions,
-            updateServiceNames,
-            calculateTotal,
-            submitForm,
-            confirmBooking,
-            showConfirmation,
-            goBack,
-            closeModal,
-        };
-
+// Updated service pricing
+const servicePrices = {
+    "Cleaning": {
+        "Deep Clean": 350,
+        "Sole Unyellowing": 750
+    },
+    "Restoration": {
+        "Full Repaint": 1200,
+        "Full Outsole Reglue": 1200,
+        "Full Midsole Reglue": 1500,
+        "Sole Replacement": 3500,
+        "Sole Stitch": 300,
+        "Partial Repaint": 300,
+        "Partial Reglue": 400
     }
-}).mount("#app");
+};
+
+// Populate service names based on selected service type
+serviceTypeSelect.addEventListener("change", function () {
+    const selectedType = this.value;
+    serviceNameSelect.innerHTML = '<option value="">-- Select --</option>'; // Reset options
+
+    if (selectedType && servicePrices[selectedType]) {
+        Object.keys(servicePrices[selectedType]).forEach(service => {
+            const option = document.createElement("option");
+            option.value = service;
+            option.textContent = service;
+            serviceNameSelect.appendChild(option);
+        });
+    }
+});
+
+// Calculate total payment
+function calculateTotal() {
+    const serviceType = serviceTypeSelect.value;
+    const serviceName = serviceNameSelect.value;
+    const numItems = parseInt(numItemsInput.value, 10);
+
+    if (serviceType && serviceName && numItems > 0) {
+        const pricePerItem = servicePrices[serviceType][serviceName] || 0;
+        totalPaymentInput.value = `₱${pricePerItem * numItems}`;
+    } else {
+        totalPaymentInput.value = "₱0";
+    }
+}
+
+numItemsInput.addEventListener("input", calculateTotal);
+serviceNameSelect.addEventListener("change", calculateTotal);
+
+// Toggle delivery address fields
+deliveryTypeSelect.addEventListener("change", function () {
+    if (this.value === "Door to Door") {
+        addressFields.style.display = "block";
+    } else {
+        addressFields.style.display = "none";
+    }
+});
+
+// Submit form data to Supabase
+async function submitBooking(event) {
+    event.preventDefault();
+
+    const formData = {
+        first_name: document.getElementById("firstName").value,
+        last_name: document.getElementById("lastName").value,
+        contact_number: document.getElementById("contactNumber").value,
+        email: document.getElementById("email").value,
+        service_type: serviceTypeSelect.value,
+        service_name: serviceNameSelect.value,
+        shoe_brand_model: document.getElementById("shoeBrandModel").value,
+        num_items: parseInt(numItemsInput.value, 10),
+        total_payment: parseFloat(totalPaymentInput.value.replace("₱", "")),
+        payment_method: document.getElementById("paymentMethod").value,
+        delivery_type: deliveryTypeSelect.value,
+        street: document.getElementById("street")?.value || "",
+        city: document.getElementById("city")?.value || "",
+        postal_code: document.getElementById("postalCode")?.value || "",
+        message: document.getElementById("message").value,
+        agree_to_terms: document.getElementById("agreeToTerms").checked
+    };
+
+    if (!formData.agree_to_terms) {
+        alert("You must agree to the terms and conditions.");
+        return;
+    }
+
+    const { data, error } = await supabase.from("bookings").insert([formData]);
+
+    if (error) {
+        console.error("Error:", error.message);
+        alert("Booking failed. Please try again.");
+    } else {
+        alert("Booking successful!");
+        bookingForm.reset();
+        totalPaymentInput.value = "₱0"; // Reset payment field
+    }
+}
+
+// Attach submit event listener
+bookingForm.addEventListener("submit", submitBooking);
