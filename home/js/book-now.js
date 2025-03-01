@@ -1,6 +1,6 @@
 // Initialize Supabase
 const supabaseUrl = "https://umfamnhqjopxxtovmwsd.supabase.co";
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVtZmFtbmhxam9weHh0b3Ztd3NkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA4NTAwNTEsImV4cCI6MjA1NjQyNjA1MX0.YgT0GToWew6lP_noejWbe0FPxmVmHcc9DztbEzmInOs"; // Replace with your actual anon key
+const supabaseKey = "your-supabase-anon-key"; // Replace with your actual anon key
 const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
 // Get form elements
@@ -29,26 +29,41 @@ const servicePrices = {
     }
 };
 
-// Populate service names based on selected service type
-serviceTypeSelect.addEventListener("change", function () {
-    const selectedType = this.value;
+// Function to update service names based on selected service type
+function updateServiceNames() {
     serviceNameSelect.innerHTML = '<option value="">-- Select --</option>'; // Reset options
 
-    if (selectedType && servicePrices[selectedType]) {
-        Object.keys(servicePrices[selectedType]).forEach(service => {
-            const option = document.createElement("option");
-            option.value = service;
-            option.textContent = service;
-            serviceNameSelect.appendChild(option);
-        });
+    let serviceOptions = [];
+
+    if (serviceTypeSelect.value === "Cleaning") {
+        serviceOptions = ["Deep Clean", "Sole Unyellowing"];
+    } else if (serviceTypeSelect.value === "Restoration") {
+        serviceOptions = [
+            "Full Repaint",
+            "Full Outsole Reglue",
+            "Full Midsole Reglue",
+            "Sole Replacement",
+            "Sole Stitch",
+            "Partial Repaint",
+            "Partial Reglue"
+        ];
     }
-});
+
+    serviceOptions.forEach(service => {
+        const option = document.createElement("option");
+        option.value = service;
+        option.textContent = service;
+        serviceNameSelect.appendChild(option);
+    });
+
+    calculateTotal(); // Reset total when service type changes
+}
 
 // Calculate total payment
 function calculateTotal() {
     const serviceType = serviceTypeSelect.value;
     const serviceName = serviceNameSelect.value;
-    const numItems = parseInt(numItemsInput.value, 10);
+    const numItems = parseInt(numItemsInput.value, 10) || 0;
 
     if (serviceType && serviceName && numItems > 0) {
         const pricePerItem = servicePrices[serviceType][serviceName] || 0;
@@ -58,16 +73,14 @@ function calculateTotal() {
     }
 }
 
-numItemsInput.addEventListener("input", calculateTotal);
+// Event Listeners
+serviceTypeSelect.addEventListener("change", updateServiceNames);
 serviceNameSelect.addEventListener("change", calculateTotal);
+numItemsInput.addEventListener("input", calculateTotal);
 
 // Toggle delivery address fields
 deliveryTypeSelect.addEventListener("change", function () {
-    if (this.value === "Door to Door") {
-        addressFields.style.display = "block";
-    } else {
-        addressFields.style.display = "none";
-    }
+    addressFields.style.display = this.value === "Door to Door" ? "block" : "none";
 });
 
 // Submit form data to Supabase
