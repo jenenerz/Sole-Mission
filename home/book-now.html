@@ -146,29 +146,7 @@
                     </div>
                     
                     <button type="submit">Submit Booking</button>
-                    <div v-if="showConfirmation" class="modal-overlay">
-                        <div class="modal">
-                            <h3>Booking Confirmation</h3>
-                            <p>
-                                <strong>Name:</strong> {{ firstName }} {{ lastName }}<br>
-                                <strong>Contact Number:</strong> {{ contactNumber }}<br>
-                                <strong>Email:</strong> {{ email }}<br>
-                                <strong>Shoe Brand & Model:</strong> {{ shoeBrandModel }}<br>
-                                <strong>Service Type:</strong> {{ serviceType }}<br>
-                                <strong>Service Name:</strong> {{ serviceName }}<br>
-                                <strong>Number of Items:</strong> {{ numItems }}<br>
-                                <strong>Total Payment:</strong> {{ totalPayment }}<br>
-                                <strong>Payment Method:</strong> {{ paymentMethod }}<br>
-                                <strong>Delivery Type:</strong> {{ deliveryType }}<br>
-                                <strong>Address:</strong> {{ address.street }}, {{ address.city }}, {{ address.postalCode }}<br>
-                                <strong>Message:</strong> {{ message }}<br>
-                            </p>
-                            <div class="modal-buttons">
-                                <button @click="confirmBooking">Confirm Booking</button>
-                                <button @click="showConfirmation = false">Cancel</button>
-                            </div>
-                        </div>
-                    </div>
+                    
                     
                 </form>
             </div>
